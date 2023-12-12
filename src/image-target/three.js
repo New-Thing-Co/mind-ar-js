@@ -1,20 +1,59 @@
-import { Matrix4, Vector3, Quaternion, Scene, WebGLRenderer, PerspectiveCamera, Group, sRGBEncoding } from "three";
+import {
+  Matrix4,
+  Vector3,
+  Quaternion,
+  Scene,
+  WebGLRenderer,
+  PerspectiveCamera,
+  Group,
+  sRGBEncoding,
+} from 'three';
 import * as tf from '@tensorflow/tfjs';
 //import { CSS3DRenderer } from '../libs/CSS3DRenderer.js';
-import {CSS3DRenderer} from 'three/addons/renderers/CSS3DRenderer.js'
-import { Controller } from "./controller.js";
-import { UI } from "../ui/ui.js";
+import { CSS3DRenderer } from 'three/addons/renderers/CSS3DRenderer.js';
+import { Controller } from './controller.js';
+import { UI } from '../ui/ui.js';
 
 const cssScaleDownMatrix = new Matrix4();
-cssScaleDownMatrix.compose(new Vector3(), new Quaternion(), new Vector3(0.001, 0.001, 0.001));
+cssScaleDownMatrix.compose(
+  new Vector3(),
+  new Quaternion(),
+  new Vector3(0.001, 0.001, 0.001)
+);
 
-const invisibleMatrix = new Matrix4().set(0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,1);
+const invisibleMatrix = new Matrix4().set(
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  0,
+  1
+);
 
 export class MindARThree {
   constructor({
-    container, imageTargetSrc, maxTrack, uiLoading = "yes", uiScanning = "yes", uiError = "yes",
-    filterMinCF = null, filterBeta = null, warmupTolerance = null, missTolerance = null,
-    userDeviceId = null, environmentDeviceId = null
+    container,
+    imageTargetSrc,
+    maxTrack,
+    uiLoading = 'yes',
+    uiScanning = 'yes',
+    uiError = 'yes',
+    filterMinCF = null,
+    filterBeta = null,
+    warmupTolerance = null,
+    missTolerance = null,
+    userDeviceId = null,
+    environmentDeviceId = null,
   }) {
     this.container = container;
     this.imageTargetSrc = imageTargetSrc;
@@ -71,7 +110,15 @@ export class MindARThree {
     const group = new Group();
     group.visible = false;
     group.matrixAutoUpdate = false;
-    const anchor = { group, targetIndex, onTargetFound: null, onTargetLost: null, onTargetUpdate: null, css: false, visible: false };
+    const anchor = {
+      group,
+      targetIndex,
+      onTargetFound: null,
+      onTargetLost: null,
+      onTargetUpdate: null,
+      css: false,
+      visible: false,
+    };
     this.anchors.push(anchor);
     this.scene.add(group);
     return anchor;
@@ -81,7 +128,15 @@ export class MindARThree {
     const group = new Group();
     group.visible = false;
     group.matrixAutoUpdate = false;
-    const anchor = { group, targetIndex, onTargetFound: null, onTargetLost: null, onTargetUpdate: null, css: true, visible: false };
+    const anchor = {
+      group,
+      targetIndex,
+      onTargetFound: null,
+      onTargetLost: null,
+      onTargetUpdate: null,
+      css: true,
+      visible: false,
+    };
     this.anchors.push(anchor);
     this.cssScene.add(group);
     return anchor;
@@ -94,10 +149,10 @@ export class MindARThree {
       this.video.setAttribute('autoplay', '');
       this.video.setAttribute('muted', '');
       this.video.setAttribute('playsinline', '');
-      this.video.style.position = 'absolute'
-      this.video.style.top = '0px'
-      this.video.style.left = '0px'
-      this.video.style.zIndex = '-2'
+      this.video.style.position = 'absolute';
+      this.video.style.top = '0px';
+      this.video.style.left = '0px';
+      this.video.style.zIndex = '-2';
       this.container.appendChild(this.video);
 
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -108,7 +163,7 @@ export class MindARThree {
 
       const constraints = {
         audio: false,
-        video: {}
+        video: {},
       };
       if (this.shouldFaceUser) {
         if (this.userDeviceId) {
@@ -124,17 +179,20 @@ export class MindARThree {
         }
       }
 
-      navigator.mediaDevices.getUserMedia(constraints).then((stream) => {
-        this.video.addEventListener('loadedmetadata', () => {
-          this.video.setAttribute('width', this.video.videoWidth);
-          this.video.setAttribute('height', this.video.videoHeight);
-          resolve();
+      navigator.mediaDevices
+        .getUserMedia(constraints)
+        .then((stream) => {
+          this.video.addEventListener('loadedmetadata', () => {
+            this.video.setAttribute('width', this.video.videoWidth);
+            this.video.setAttribute('height', this.video.videoHeight);
+            resolve();
+          });
+          this.video.srcObject = stream;
+        })
+        .catch((err) => {
+          console.log('getUserMedia error', err);
+          reject();
         });
-        this.video.srcObject = stream;
-      }).catch((err) => {
-        console.log("getUserMedia error", err);
-        reject();
-      });
     });
   }
 
@@ -159,7 +217,8 @@ export class MindARThree {
               if (this.anchors[i].targetIndex === targetIndex) {
                 if (this.anchors[i].css) {
                   this.anchors[i].group.children.forEach((obj) => {
-                    obj.element.style.visibility = worldMatrix === null ? "hidden" : "visible";
+                    obj.element.style.visibility =
+                      worldMatrix === null ? 'hidden' : 'visible';
                   });
                 } else {
                   this.anchors[i].group.visible = worldMatrix !== null;
@@ -190,7 +249,7 @@ export class MindARThree {
                     this.anchors[i].onTargetFound();
                   }
                 }
-                
+
                 if (this.anchors[i].onTargetUpdate) {
                   this.anchors[i].onTargetUpdate();
                 }
@@ -206,12 +265,13 @@ export class MindARThree {
               this.ui.showScanning();
             }
           }
-        }
+        },
       });
 
       this.resize();
 
-      const { dimensions: imageTargetDimensions } = await this.controller.addImageTargets(this.imageTargetSrc);
+      const { dimensions: imageTargetDimensions } =
+        await this.controller.addImageTargets(this.imageTargetSrc);
 
       this.postMatrixs = [];
       for (let i = 0; i < imageTargetDimensions.length; i++) {
@@ -233,7 +293,8 @@ export class MindARThree {
       this.ui.hideLoading();
       this.ui.showScanning();
 
-      this.controller.processVideo(this.video);
+      // NT: remove all video processing
+      //this.controller.processVideo(this.video);
       resolve();
     });
   }
@@ -274,13 +335,15 @@ export class MindARThree {
       videoDisplayHeight *= inputAdjust;
     } else {
       videoDisplayWidth = container.clientWidth;
-      videoDisplayHeight = videoDisplayWidth / this.controller.inputWidth * this.controller.inputHeight;
+      videoDisplayHeight =
+        (videoDisplayWidth / this.controller.inputWidth) *
+        this.controller.inputHeight;
       videoDisplayHeight *= inputAdjust;
     }
     let fovAdjust = container.clientHeight / videoDisplayHeight;
 
     // const fov = 2 * Math.atan(1 / proj[5] / vh * container.clientHeight) * 180 / Math.PI; // vertical fov
-    const fov = 2 * Math.atan(1 / proj[5] * fovAdjust) * 180 / Math.PI; // vertical fov
+    const fov = (2 * Math.atan((1 / proj[5]) * fovAdjust) * 180) / Math.PI; // vertical fov
     const near = proj[14] / (proj[10] - 1.0);
     const far = proj[14] / (proj[10] + 1.0);
     const ratio = proj[5] / proj[0]; // (r-l) / (t-b)
@@ -291,10 +354,10 @@ export class MindARThree {
     camera.aspect = container.clientWidth / container.clientHeight;
     camera.updateProjectionMatrix();
 
-    video.style.top = (-(vh - container.clientHeight) / 2) + "px";
-    video.style.left = (-(vw - container.clientWidth) / 2) + "px";
-    video.style.width = vw + "px";
-    video.style.height = vh + "px";
+    video.style.top = -(vh - container.clientHeight) / 2 + 'px';
+    video.style.left = -(vw - container.clientWidth) / 2 + 'px';
+    video.style.width = vw + 'px';
+    video.style.height = vh + 'px';
 
     const canvas = renderer.domElement;
     const cssCanvas = cssRenderer.domElement;
