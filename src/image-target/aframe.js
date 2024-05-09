@@ -72,7 +72,8 @@ AFRAME.registerSystem('mindar-image-system', {
     if (!keepVideo) {
       this.video.pause();
     }
-    this.controller.stopProcessVideo();
+    // NT: remove all video processing
+    //this.controller.stopProcessVideo();
   },
 
   unpause: function () {
@@ -117,7 +118,6 @@ AFRAME.registerSystem('mindar-image-system', {
         this.video.srcObject = stream;
       })
       .catch((err) => {
-        console.log('getUserMedia error', err);
         this.el.emit('arError', { error: 'VIDEO_FAIL' });
       });
   },
@@ -173,7 +173,11 @@ AFRAME.registerSystem('mindar-image-system', {
       }
     }
 
+    
+
+
     await this.controller.dummyRun(this.video);*/
+
     this.el.emit('arReady');
 
     // NT: remove scanning UI
@@ -222,6 +226,10 @@ AFRAME.registerSystem('mindar-image-system', {
     this.video.style.left = -(vw - container.clientWidth) / 2 + 'px';
     this.video.style.width = vw + 'px';
     this.video.style.height = vh + 'px';
+
+    var objComponent = document.querySelector('[clicker]').components.clicker;
+    objComponent.posObj();
+    this.el.emit('arResize');
   },
 });
 
@@ -271,7 +279,8 @@ AFRAME.registerComponent('mindar-image', {
   },
 });
 
-AFRAME.registerComponent('mindar-image-target', {
+// NT: we aren't leveraging image targets
+/*AFRAME.registerComponent('mindar-image-target', {
   dependencies: ['mindar-image-system'],
 
   schema: {
@@ -341,7 +350,7 @@ AFRAME.registerComponent('mindar-image-target', {
     m.multiply(this.postMatrix);
     this.el.object3D.matrix = m;
   },
-});
+});*/
 /*
 This is a hack.
 If the user's browser has cached A-Frame,

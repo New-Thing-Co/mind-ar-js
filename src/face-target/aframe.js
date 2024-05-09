@@ -244,6 +244,7 @@ AFRAME.registerSystem('mindar-face-system', {
     sceneEl.style.left = this.video.style.left;
     sceneEl.style.width = this.video.style.width;
     sceneEl.style.height = this.video.style.height;
+    this.el.emit('arResize');
   },
 });
 
